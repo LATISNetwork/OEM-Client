@@ -1,7 +1,7 @@
 <script lang="ts">
 
 	import { browser } from '$app/environment';
-
+	import Estuary from '$lib/components/Estuary.svelte';
 	const agent = window.electron ? 'Electron' : 'Browser';
 </script>
 
@@ -10,6 +10,6 @@
 		<h1>LATIS OEM Portal</h1>
 		<p>Running in {agent}</p>
 	</div>
-	
+	<Estuary />
 
 </main>

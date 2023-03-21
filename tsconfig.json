@@ -25,12 +25,13 @@
 		"resolveJsonModule": true,
 		"skipLibCheck": true,
 		"sourceMap": true,
-		"strict": true,
+		"strict": true
 		// "paths": {
 		// 	"$lib": ["src/lib"],
 		// 	"$lib/*": ["src/lib/*"],
 		// 	"$app/*": [".svelte/dev/runtime/app/*", ".svelte/build/runtime/app/*"]
 		// }
 	},
+	"files": ["node_modules/@types/w3c-web-usb/index.d.ts"],
 	"include": ["src/**/*.d.ts", "src/**/*.ts", "src/**/*.svelte", "src/electron.js"]
 }

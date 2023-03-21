@@ -3,6 +3,7 @@
 	import { browser } from '$app/environment';
 	import Estuary from '$lib/components/Estuary.svelte';
 	const agent = window.electron ? 'Electron' : 'Browser';
+	import Ledger from '$lib/components/Ledger.svelte';
 </script>
 
 <main>
@@ -11,5 +12,6 @@
 		<p>Running in {agent}</p>
 	</div>
 	<Estuary />
+	<Ledger />
 
 </main>

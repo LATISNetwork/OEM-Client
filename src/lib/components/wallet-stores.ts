@@ -170,4 +170,8 @@ export class WalletStores implements State {
 
 		return error.message;
 	}
+
+	save() {
+		return this;
+	}
 }

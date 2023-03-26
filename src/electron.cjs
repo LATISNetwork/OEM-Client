@@ -4,7 +4,7 @@ const contextMenu = require('electron-context-menu');
 const serve = require('electron-serve');
 const path = require('path');
 const {Buffer} = require('buffer');
-
+global.Buffer = Buffer;
 try {
 	require('electron-reloader')(module);
 } catch (e) {

@@ -1,7 +1,7 @@
 <script lang="ts">
 	/// <reference types="w3c-web-usb" />
 	import { onMount } from 'svelte';
-	import { walletstore } from '$lib/stores/wallet';
+	import { walletstores } from '$lib/components/wallet-stores';
 	import { LedgerHardwareWallet } from './hardware-ledger';
 	
 	let busy = false;
@@ -18,21 +18,21 @@
 		disabled = true;
 		busy = true;
 		error = '';
-		navigator.usb.requestDevice({ filters: [] }).then(function (device) {
+		await navigator.usb.requestDevice({ filters: [] }).then(function (device) {
 			console.log("device: ", device);
 		});
 		console.log('devices: ', await navigator.usb.getDevices());
 
 		try {
-			const wallet = new LedgerHardwareWallet();
+			const wallet = await new LedgerHardwareWallet();
 
-			$walletstore.setWallet(wallet);
+			const store = walletstores;
+			await store.setWallet(wallet);
 			console.log('Connected to Ledger');
 			console.log(wallet);
 
-			wallet.getPublicKey(0).then((pubkey) => {
-				console.log('pubkey', pubkey);
-			});
+			const pubKey = await wallet.getPublicKey(0);
+			console.log('pubKey: ', pubKey);
 		} catch (e: any) {
 			// Bad practice <- Lazy Forrest
 			error = e.message;

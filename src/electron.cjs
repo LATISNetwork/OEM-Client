@@ -3,6 +3,7 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const contextMenu = require('electron-context-menu');
 const serve = require('electron-serve');
 const path = require('path');
+const {Buffer} = require('buffer');
 
 try {
 	require('electron-reloader')(module);

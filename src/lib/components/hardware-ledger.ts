@@ -1,12 +1,12 @@
 import { Buffer } from "buffer";
-
+// import TransportWebUSB from "@ledgerhq/hw-transport-webusb"
 import type { PublicKey } from "@hashgraph/sdk";
 import type Transport from "@ledgerhq/hw-transport";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import BIPPath from "bip32-path";
 
-import { walletstore } from "../stores/wallet";
+import { walletstores } from "./wallet-stores";
 
 import { Wallet } from "./ledgerabstract";
 
@@ -51,17 +51,20 @@ export class LedgerHardwareWallet extends Wallet {
       return this.transport;
     }
 
-      const TransportUSB = (
-        await import("@ledgerhq/hw-transport-node-hid")
+      const TransportUSB= (
+        await import("@ledgerhq/hw-transport-webhid")
       )["default"];
+      // console.log("TransportUSB: ", TransportUSB);
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       this.transport = await TransportUSB.create(
         OPEN_TIMEOUT,
         LISTENER_TIMEOUT
       );
+      // console.log("Transport: ", this.transport);
 
     if (this.transport != null) {
+      // console.log("Transport: ", this.transport);
       this.transport.on("disconnect", async () => {
         try {
           await this.transport?.close();
@@ -73,17 +76,19 @@ export class LedgerHardwareWallet extends Wallet {
         }
       });
     }
-
+    console.log("Transport: ", this.transport);
     return this.transport;
   }
 
   private async sendAPDU(message: APDU): Promise<Buffer | null> {
-    const store = walletstore;
+    const store = walletstores;
     let response: Buffer | null = null;
-
     store.setPromptOpen(true);
+    console.log("Sending APDU: ", message);
     await this.getTransport().then(async (transport) => {
+      console.log("Transport: ", transport);
       if (transport != null) {
+        console.log("Sending APDU: ", message);
         response = await transport.send(
           message.CLA,
           message.INS,
@@ -91,6 +96,7 @@ export class LedgerHardwareWallet extends Wallet {
           message.P2,
           message.buffer
         );
+        console.log("Response: ", response);
       }
     }).finally(
       () => store.setPromptOpen(false)
@@ -110,7 +116,7 @@ export class LedgerHardwareWallet extends Wallet {
     // IOC hack for missing  decimal information in protos
     let decimals = P1_UNUSED_APDU;
 
-    const store = walletstore;
+    const store = walletstores;
     const extra = store.extraInfo;
 
     if (extra != null && extra.decimals != null) {
@@ -156,8 +162,9 @@ export class LedgerHardwareWallet extends Wallet {
       return this.publicKeys.get(index);
     } else {
       // NOTE: this just happens to work in the current BOLOS implementation
+      console.log("Getting public key for index", index);
       const buffer = this.serializePath(BIPPath.fromString(PATH(index)).toPathArray());
-      
+      console.log("Buffer", buffer);
       const response = await this.sendAPDU({
         CLA,
         INS: INS_GET_PK,
@@ -167,6 +174,7 @@ export class LedgerHardwareWallet extends Wallet {
       });
 
       if (response != null) {
+        console.log("Got public key for index", index);
         const pubKeyStr = response.slice(0, -2).toString("hex");
         const pubKey = PublicKey.fromString(pubKeyStr);
         this.publicKeys.set(index, pubKey);

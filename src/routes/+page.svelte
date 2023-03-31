@@ -4,6 +4,7 @@
 	import Estuary from '$lib/components/Estuary.svelte';
 	const agent = window.electron ? 'Electron' : 'Browser';
 	import Ledger from '$lib/components/Ledger.svelte';
+	import Encrypt from '$lib/components/Encrypt.svelte';
 </script>
 
 <main>
@@ -11,6 +12,7 @@
 		<h1>LATIS OEM Portal</h1>
 		<p>Running in {agent}</p>
 	</div>
+	<Encrypt />
 	<Estuary />
 	<Ledger />
 

@@ -52,7 +52,7 @@ export class LedgerHardwareWallet extends Wallet {
     }
 
       const TransportUSB= (
-        await import("@ledgerhq/hw-transport-webhid")
+        await import("@ledgerhq/hw-transport-webusb")
       )["default"];
       // console.log("TransportUSB: ", TransportUSB);
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment

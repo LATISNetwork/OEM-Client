@@ -3,7 +3,8 @@
 	import { onMount } from 'svelte';
 	import { walletstores } from '$lib/components/wallet-stores';
 	import { LedgerHardwareWallet } from './hardware-ledger';
-	
+	// import * as usb from '../../usb.bundle.js';
+
 	let busy = false;
 	let error = '';
 	let disabled = false;
@@ -15,13 +16,22 @@
 	};
 
 	const handleConnect = async () => {
+		
 		disabled = true;
 		busy = true;
 		error = '';
-		await navigator.usb.requestDevice({ filters: [] }).then(function (device) {
-			console.log("device: ", device);
-		});
-		console.log('devices: ', await navigator.usb.getDevices());
+		let devicesList = await navigator.usb.getDevices();
+		console.log(devicesList)
+		const devices = await navigator.usb
+			.requestDevice({ filters: [] })
+			.then((device) => {
+				console.log(device.productName); // "Arduino Micro"
+				console.log(device.manufacturerName); // "Arduino LLC"
+			})
+			.catch((error) => {
+				console.log(error);
+			});
+		console.log('devices: ', devices);
 
 		try {
 			const wallet = await new LedgerHardwareWallet();
@@ -57,8 +67,7 @@
 		});
 	});
 </script>
+
 <div>
-	<button on:click={handleConnect}>
-		Connect
-	</button>
+	<button on:click={handleConnect}>Connect</button>
 </div>

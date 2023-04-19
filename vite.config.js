@@ -1,7 +1,8 @@
 import { sveltekit } from '@sveltejs/kit/vite';
-import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill'
+import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill';
 const config = {
-	plugins: [sveltekit(),
+	plugins: [
+		sveltekit(),
 		NodeGlobalsPolyfillPlugin({
 			process: true,
 			Buffer: true,
@@ -9,8 +10,9 @@ const config = {
 			__dirname: true,
 			__filename: true,
 			global: true,
-		})
-		],
+		}),
+	],
+	
 };
 
 export default config;

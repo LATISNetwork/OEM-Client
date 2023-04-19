@@ -1,16 +1,18 @@
 const windowStateManager = require('electron-window-state');
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, session } = require('electron');
 const contextMenu = require('electron-context-menu');
 const serve = require('electron-serve');
 const path = require('path');
-const {Buffer} = require('buffer');
+const usb = require('usb');
+const serialport = require('serialport');
+const { Buffer } = require('buffer');
 global.Buffer = Buffer;
 try {
 	require('electron-reloader')(module);
 } catch (e) {
 	console.error(e);
 }
-
+app.commandLine.appendSwitch('disable-hid-blocklist');
 const serveURL = serve({ directory: '.' });
 const port = process.env.PORT || 5173;
 const dev = !app.isPackaged;
@@ -21,6 +23,8 @@ function createWindow() {
 		defaultWidth: 800,
 		defaultHeight: 600,
 	});
+
+	let grantedDeviceThroughPermHandler;
 
 	const mainWindow = new BrowserWindow({
 		backgroundColor: 'whitesmoke',
@@ -46,6 +50,56 @@ function createWindow() {
 		height: windowState.height,
 	});
 
+	mainWindow.webContents.session.on('select-usb-device', (event, details, callback) => {
+		// Add events to handle devices being added or removed before the callback on
+		// `select-usb-device` is called.
+		mainWindow.webContents.session.on('usb-device-added', (event, device) => {
+			console.log('usb-device-added FIRED WITH', device);
+			// Optionally update details.deviceList
+		});
+
+		mainWindow.webContents.session.on('usb-device-removed', (event, device) => {
+			console.log('usb-device-removed FIRED WITH', device);
+			// Optionally update details.deviceList
+		});
+
+		event.preventDefault();
+		if (details.deviceList && details.deviceList.length > 0) {
+			const deviceToReturn = details.deviceList.find((device) => {
+				if (
+					!grantedDeviceThroughPermHandler ||
+					device.deviceId !== grantedDeviceThroughPermHandler.deviceId
+				) {
+					return true;
+				}
+			});
+			if (deviceToReturn) {
+				callback(deviceToReturn.deviceId);
+			} else {
+				callback();
+			}
+		}
+	});
+
+	mainWindow.webContents.session.setPermissionCheckHandler(
+		(webContents, permission, requestingOrigin, details) => {
+			if (permission === 'usb' && details.securityOrigin === 'file:///') {
+				return true;
+			}
+		},
+	);
+
+	mainWindow.webContents.session.setDevicePermissionHandler((details) => {
+		if (details.deviceType === 'usb' && details.origin === 'file://') {
+			if (!grantedDeviceThroughPermHandler) {
+				grantedDeviceThroughPermHandler = details.device;
+				return true;
+			} else {
+				return false;
+			}
+		}
+	});
+
 	windowState.manage(mainWindow);
 
 	mainWindow.once('ready-to-show', () => {
@@ -59,6 +113,18 @@ function createWindow() {
 
 	return mainWindow;
 }
+
+// Listen for a request from the renderer process to request USB permission
+ipcMain.on('request-usb-permission', async (event) => {
+	const { response } = await dialog.showMessageBox({
+		type: 'question',
+		buttons: ['Grant', 'Deny'],
+		message: 'Do you want to allow this app to access your USB device?',
+	});
+
+	// Send the permission status back to the renderer process
+	event.sender.send('usb-permission-status', response === 0 ? 'granted' : 'denied');
+});
 
 contextMenu({
 	showLookUpSelection: false,
@@ -90,7 +156,10 @@ function createMainWindow() {
 	else serveURL(mainWindow);
 }
 
-app.once('ready', createMainWindow);
+app.whenReady().then(() => {
+	createMainWindow();
+	require('@electron/remote/main').initialize();
+});
 app.on('activate', () => {
 	if (!mainWindow) {
 		createMainWindow();

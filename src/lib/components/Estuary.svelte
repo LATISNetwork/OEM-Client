@@ -16,6 +16,10 @@
             error = "Please enter a file name";
             return;
         }
+
+        // copy the file to the public folder
+        
+
         const formData = {
             file: file.files[0].path,
             name: name

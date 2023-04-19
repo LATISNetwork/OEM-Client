@@ -12,6 +12,7 @@ const config = {
 			fallback: 'index.html',
 		}),
 		prerender: { entries: [] },
+		
 	},
 };
 

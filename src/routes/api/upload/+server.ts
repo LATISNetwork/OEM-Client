@@ -2,15 +2,22 @@ import { ESTUARY_KEY_DEMO } from '$lib/server/config';
 import axios from 'axios';
 import FormData from 'form-data';
 import fs from 'fs';
+
 export const POST = async ({ request }) => {
-	const body = await request.json();
-	const file = body.file;
-	const name = body.name;
+	const body = await request.formData();
+	const file = body.get('file');
+	const name = body.get('name');
+
 	console.log('name', name);
 	console.log('file', file);
+
+	const filePath = `static/uploads/${name}`;
+	await fs.promises.writeFile(filePath, Buffer.from(await file.arrayBuffer()));
+
+	let fileName = 'static/uploads/' + name;
 	let data = new FormData();
-	data.append('data', fs.createReadStream(file));
-	data.append('filename', name);
+	data.append('data', fs.createReadStream(fileName));
+	data.append('fileName', name);
 
 	let config = {
 		method: 'post',

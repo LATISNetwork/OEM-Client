@@ -7,12 +7,12 @@ export const load = (async ({ fetch }) => {
 	componentType.set(ComponentType.LEDGER);
 	loggedIn.set(false);
 
-	walletstores.subscribe((wallets) => {
-		console.log('wallets.wallet', wallets);
-		if (wallets.wallet !== null) {
-			componentType.set(1);
-		}
-	});
+	// walletstores.subscribe((wallets) => {
+	// 	console.log('wallets.wallet', wallets);
+	// 	if (wallets.wallet !== null) {
+	// 		componentType.set(1);
+	// 	}
+	// });
 	const params = await verifyAuth(fetch);
 	if (params.loggedIn) {
 		loggedIn.set(true);

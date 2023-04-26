@@ -11,19 +11,18 @@
 	onMount(() => {
 		ready = true;
 		componentType.subscribe((value) => {
-			if (value === ComponentType.LOGIN && loggedIn) {
+			if (value === ComponentType.LOGIN && $loggedIn == true) {
 				componentType.set(ComponentType.PORTAL);
 			}
 		});
-		
 	});
 </script>
 
-<main>
+<main class="text-lg">
 	{#if $componentType === ComponentType.LEDGER}
 		<Ledger />
 	{:else if $componentType === ComponentType.LOGIN}
-		{#if $loggedIn}
+		{#if $loggedIn == true}
 			<Estuary />
 		{:else}
 			<Login />

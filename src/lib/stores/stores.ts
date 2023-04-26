@@ -8,3 +8,4 @@ export enum ComponentType {
 export let componentType = writable(ComponentType.LEDGER);
 
 export let loggedIn = writable(false);
+export let pubKey = writable('');

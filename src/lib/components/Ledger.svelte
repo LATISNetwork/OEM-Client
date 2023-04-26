@@ -4,7 +4,7 @@
 	import { walletstores } from '$lib/components/wallet-stores';
 	import { LedgerHardwareWallet } from './hardware-ledger';
 	import { goto } from '$app/navigation';
-	import { componentType, loggedIn, ComponentType } from '$lib/stores/stores';
+	import { componentType, loggedIn, ComponentType, pubKey } from '$lib/stores/stores';
 	// import * as usb from '../../usb.bundle.js';
 
 	let busy = false;
@@ -18,12 +18,11 @@
 	};
 
 	const handleConnect = async () => {
-		
 		disabled = true;
 		busy = true;
 		error = '';
 		let devicesList = await navigator.usb.getDevices();
-		console.log(devicesList)
+		console.log(devicesList);
 		const devices = await navigator.usb
 			.requestDevice({ filters: [] })
 			.then((device) => {
@@ -43,9 +42,11 @@
 			console.log('Connected to Ledger');
 			console.log(wallet);
 
-			const pubKey = await wallet.getPublicKey(0);
-			console.log('pubKey: ', pubKey);
-			$componentType = ComponentType.LOGIN;
+			const pubKeyL = await wallet.getPublicKey(0).then(() => {
+				console.log('connected to ledger!!!!');
+				$componentType = ComponentType.LOGIN;
+			});
+			console.log('pubKey: ', pubKeyL);
 		} catch (e: any) {
 			// Bad practice <- Lazy Forrest
 			error = e.message;
@@ -71,6 +72,14 @@
 	});
 </script>
 
-<div>
-	<button on:click={handleConnect}>Connect</button>
+<div class="flex flex-col justify-center items-center h-screen gap-y-2 text-center">
+	<h1 class="text-5xl text-emerald-200 font-bold">LATIS</h1>
+	<h1 class="text-emerald-400 mb-8">Secure your device updates, decentralized and trusted.</h1>
+	<button
+		on:click={handleConnect}
+		class="border-2 border-solid border-white rounded-full py-2 px-8 text-white font-bold text-xl bg-black hover:animate-pulse bg-opacity-10"
+	>
+		Connect Your Hardware Wallet
+	</button>
+	<h1 class="text-gray-400">powered by the Hedera Network</h1>
 </div>

@@ -28,23 +28,13 @@ export const POST = (async ({ request, cookies }) => {
   const customToken = await admin.auth().createCustomToken(uid);
 
   await admin.firestore().collection('users').doc(uid).set({
-    username,
     email,
-    pfp: '',
-    twitter: '',
-    artstation: '',
-    instagram: '',
-    website: '',
-    bio: '',
-    pixiv: '',
     uid,
-    early_access: true,
     admin: false,
-    verified: false,
     created: new Date(),
     updated: new Date(),
-    boards: [],
-    student: false
+    type: "",
+    oemID: "",
   });
 
   updateAuthCookies(cookies, customToken, refreshToken);

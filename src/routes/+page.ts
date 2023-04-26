@@ -1,16 +1,15 @@
 import { verifyAuth } from '$lib/auth/util';
 import { redirect } from '@sveltejs/kit';
-import type { PageServerLoad } from './$types';
-import { DEV } from '$lib/server/config';
+import type { PageLoad } from './$types';
 import { walletstores } from '$lib/components/wallet-stores';
-import {componentType, loggedIn} from '$lib/stores/stores';
+import {componentType, loggedIn, ComponentType} from '$lib/stores/stores';
 export const load = (async ({ fetch }) => {
-	componentType.set(0);
+	componentType.set(ComponentType.LEDGER);
 	loggedIn.set(false);
+
 	walletstores.subscribe((wallets) => {
 		console.log('wallets.wallet', wallets);
 		if (wallets.wallet !== null) {
-			loggedIn.set(true);
 			componentType.set(1);
 		}
 	});
@@ -19,4 +18,4 @@ export const load = (async ({ fetch }) => {
 		loggedIn.set(true);
 		componentType.set(2);
 	}
-}) satisfies PageServerLoad;
+}) satisfies PageLoad;

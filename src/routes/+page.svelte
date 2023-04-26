@@ -4,12 +4,19 @@
 	const agent = window.electron ? 'Electron' : 'Browser';
 	import Ledger from '$lib/components/Ledger.svelte';
 	import Login from '$lib/components/Login.svelte';
-	import Encrypt from '$lib/components/Encrypt.svelte';
 	import { onMount } from 'svelte';
 	import { componentType, loggedIn, ComponentType } from '$lib/stores/stores';
 	let ready: boolean = false;
 	import '../shims-buffer';
-	onMount(() => (ready = true));
+	onMount(() => {
+		ready = true;
+		componentType.subscribe((value) => {
+			if (value === ComponentType.LOGIN && loggedIn) {
+				componentType.set(ComponentType.PORTAL);
+			}
+		});
+		
+	});
 </script>
 
 <main>
@@ -22,6 +29,6 @@
 			<Login />
 		{/if}
 	{:else if $componentType === ComponentType.PORTAL}
-		<Encrypt />
+		<Estuary />
 	{/if}
 </main>

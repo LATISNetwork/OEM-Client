@@ -1,9 +1,8 @@
 import { writable } from 'svelte/store';
 export enum ComponentType {
-    
-    LEDGER,
-    LOGIN,
-    PORTAL
+	LEDGER,
+	LOGIN,
+	PORTAL,
 }
 
 export let componentType = writable(ComponentType.LEDGER);

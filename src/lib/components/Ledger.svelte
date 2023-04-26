@@ -3,6 +3,8 @@
 	import { onMount } from 'svelte';
 	import { walletstores } from '$lib/components/wallet-stores';
 	import { LedgerHardwareWallet } from './hardware-ledger';
+	import { goto } from '$app/navigation';
+	import { componentType, loggedIn, ComponentType } from '$lib/stores/stores';
 	// import * as usb from '../../usb.bundle.js';
 
 	let busy = false;
@@ -43,6 +45,7 @@
 
 			const pubKey = await wallet.getPublicKey(0);
 			console.log('pubKey: ', pubKey);
+			$componentType = ComponentType.LOGIN;
 		} catch (e: any) {
 			// Bad practice <- Lazy Forrest
 			error = e.message;

@@ -1,19 +1,27 @@
 <script lang="ts">
-
 	import { browser } from '$app/environment';
 	import Estuary from '$lib/components/Estuary.svelte';
 	const agent = window.electron ? 'Electron' : 'Browser';
 	import Ledger from '$lib/components/Ledger.svelte';
+	import Login from '$lib/components/Login.svelte';
 	import Encrypt from '$lib/components/Encrypt.svelte';
+	import { onMount } from 'svelte';
+	import { componentType, loggedIn, ComponentType } from '$lib/stores/stores';
+	let ready: boolean = false;
+	import '../shims-buffer';
+	onMount(() => (ready = true));
 </script>
 
 <main>
-	<div class="m-4">
-		<h1>LATIS OEM Portal</h1>
-		<p>Running in {agent}</p>
-	</div>
-	<Encrypt />
-	<Estuary />
-	<Ledger />
-
+	{#if $componentType === ComponentType.LEDGER}
+		<Ledger />
+	{:else if $componentType === ComponentType.LOGIN}
+		{#if $loggedIn}
+			<Estuary />
+		{:else}
+			<Login />
+		{/if}
+	{:else if $componentType === ComponentType.PORTAL}
+		<Encrypt />
+	{/if}
 </main>

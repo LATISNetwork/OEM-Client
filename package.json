@@ -13,7 +13,7 @@
 		"usbDevices"
 	],
 	"scripts": {
-		"dev": "cross-env NODE_ENV=dev npm run dev:all",
+		"dev": "cross-env NODE_ENV=dev npm run dev:svelte",
 		"dev:all": "concurrently -n=svelte,electron -c='#ff3e00',blue \"npm run dev:svelte\" \"npm run dev:electron\"",
 		"dev:svelte": "vite dev",
 		"dev:electron": "electron src/electron.cjs",
@@ -47,6 +47,7 @@
 		"electron-reloader": "^1.2.3",
 		"electron-serve": "^1.1.0",
 		"electron-window-state": "^5.0.3",
+		"firebase-admin": "^11.7.0",
 		"form-data": "^4.0.0",
 		"formidable": "^2.1.1",
 		"serialport": "^10.5.0",

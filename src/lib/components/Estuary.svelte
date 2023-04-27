@@ -358,7 +358,7 @@
 	</div>
 
 	<div
-		class="my-4 bg-emerald-500 bg-opacity-10 rounded-lg shadow-md p-8 max-h-full w-2/3 overflow-y-auto overflow-x-hidden"
+		class="my-4 mr-4 bg-emerald-500 bg-opacity-10 rounded-lg shadow-md p-8 max-h-full w-2/3 overflow-y-auto overflow-x-hidden"
 	>
 		<h1>Uploaded Updates</h1>
 		<div class="my-4 grid grid-cols-8 w-full text-center">

@@ -74,12 +74,12 @@
 
 <div class="flex flex-col justify-center items-center h-screen gap-y-2 text-center">
 	<h1 class="text-5xl text-emerald-200 font-bold">LATIS</h1>
-	<h1 class="text-emerald-400 mb-8">Secure your device updates, decentralized and trusted.</h1>
+	<h1 class="text-emerald-400 mb-4 text-lg">Secure your device updates, decentralized and trusted.</h1>
 	<button
 		on:click={handleConnect}
 		class="border-2 border-solid border-white rounded-full py-2 px-8 text-white font-bold text-xl bg-black hover:animate-pulse bg-opacity-10"
 	>
 		Connect Your Hardware Wallet
 	</button>
-	<h1 class="text-gray-400">powered by the Hedera Network</h1>
+	<h1 class="text-gray-400 text-lg">powered by the Hedera Network</h1>
 </div>

@@ -16,3 +16,4 @@ pnpm-lock.yaml
 .DS_Store
 config.ts
 firebase-admin.json
+static/uploads/*

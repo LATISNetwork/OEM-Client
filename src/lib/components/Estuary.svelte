@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { toast, SvelteToast } from '@zerodevx/svelte-toast';
+
 	let pathToFile = '';
 	let name = '';
 	let fileDescription = '';
@@ -21,6 +23,12 @@
 	import { oemContract } from '$lib/stores/wallet';
 	import { onMount } from 'svelte';
 	let updateListJson: any[] = [];
+
+	const app = new SvelteToast({
+		// Set where the toast container should be appended into
+		target: document.body,
+		props: {},
+	});
 
 	const uploadFile = async () => {
 		if (!file.files || !file.files[0]) {
@@ -93,40 +101,45 @@
 			if (!addUpdate.ok) {
 				error = await addUpdate.text();
 				return;
+			} else {
+				let client;
+				const unsubscribeWallet = walletstores.subscribe((store) => {
+					client = store.client;
+				});
+
+				// HERE ADD SMART CONTRACT, AFTER ASYNC CALL FINISHES, THEN UPDATE THE STUFF BELOW
+				// only call when maufacturer is LatisManufacturer
+				response = responseJson.output;
+				name = '';
+				fileDescription = '';
+				deviceID = '';
+				version = '';
+				file.value = '';
+				uploadLoading = false;
+				updateUpdateList();
+				console.log('Adding update 1 to OEM');
+				const contractAddUpdate1Tx = new ContractExecuteTransaction()
+					.setContractId(oemContract)
+					.setGas(1000000)
+					.setFunction(
+						'addUpdate',
+						new ContractFunctionParameters()
+							.addString(deviceID)
+							.addString(version)
+							.addUint256(0x23456789)
+							.addUint256(0x34)
+							.addString(cid)
+							.addAddress('0x9d16aaf1d85cea6cdb816c56dba5e2ed9689f7c2')
+							.addString(url),
+					);
+				const contractAddUpdate1Submit = await contractAddUpdate1Tx.execute(client);
+				const contractAddUpdateRx = await contractAddUpdate1Submit.getReceipt(client);
+				console.log('- Adding update 1 to OEM\n');
+				if (contractAddUpdateRx.status !== Status.Success) {
+					console.log('Failed to add update 1 to OEM');
+					return;
+				}
 			}
-			let client;
-			const unsubscribeWallet = walletstores.subscribe((store) => {
-				client = store.client;
-			});
-
-			// HERE ADD SMART CONTRACT, AFTER ASYNC CALL FINISHES, THEN UPDATE THE STUFF BELOW
-			// only call when maufacturer is LatisManufacturer
-			const contractAddUpdate1Tx = new ContractExecuteTransaction()
-				.setContractId(oemContract)
-				.setGas(1000000)
-				.setFunction(
-					'addUpdate',
-					new ContractFunctionParameters()
-						.addString(deviceID)
-						.addString(version)
-						.addUint256(0x23456789)
-						.addUint256(0x34)
-						.addAddress(cid)
-						.addAddress('0x9d16aaf1d85cea6cdb816c56dba5e2ed9689f7c2')
-						.addString(url),
-				);
-			const contractAddUpdate1Submit = await contractAddUpdate1Tx.execute(client);
-			const contractAddUpdateRx = await contractAddUpdate1Submit.getReceipt(client);
-			console.log('- Adding update 1 to OEM\n');
-
-			response = responseJson.output;
-			name = '';
-			fileDescription = '';
-			deviceID = '';
-			version = '';
-			file.value = '';
-			uploadLoading = false;
-			updateUpdateList();
 		}
 	};
 	const logout = async () => {
@@ -162,21 +175,48 @@
 		console.log(cid);
 		console.log(url);
 		// DO AN API CALL HERE
-		// DO A SMART CONTRACT CALL TOO
-		// make an if statment here to only call this method when manufacturer is LatisManufacturer
-		const contractPushUpdateTx = new ContractExecuteTransaction()
-			.setContractId(oemContract)
-			.setGas(1000000)
-			.setFunction(
-				'pushUpdate',
-				new ContractFunctionParameters()
-					.addString(deviceID)
-					.addString(version)
-					.addString('LatisManufacturer'),
-			);
-		const contractPushUpdateSubmit = await contractPushUpdateTx.execute(client);
-		const contractPushUpdateRx = await contractPushUpdateSubmit.getReceipt(client);
-		console.log('- Pushing update to middleman\n');
+		const res = await fetch('/api/push-update', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			credentials: 'same-origin',
+			body: JSON.stringify({
+				name,
+				d_id,
+				version,
+				cid,
+				url,
+				manuID,
+			}),
+		});
+		if (!res.ok) {
+			error = await res.text();
+			return;
+		} else {
+			toast.push('Update pushed to middleman and ' + manuID);
+			let client;
+			const unsubscribeWallet = walletstores.subscribe((store) => {
+				client = store.client;
+			});
+			// DO A SMART CONTRACT CALL TOO
+			// make an if statment here to only call this method when manufacturer is LatisManufacturer
+			if (manuID == 'LatisManu') {
+				const contractPushUpdateTx = new ContractExecuteTransaction()
+					.setContractId(oemContract)
+					.setGas(1000000)
+					.setFunction(
+						'pushUpdate',
+						new ContractFunctionParameters()
+							.addString(deviceID)
+							.addString(version)
+							.addString('LatisManufacturer'),
+					);
+				const contractPushUpdateSubmit = await contractPushUpdateTx.execute(client);
+				const contractPushUpdateRx = await contractPushUpdateSubmit.getReceipt(client);
+				console.log('- Pushing update to middleman\n');
+			}
+		}
 	};
 
 	const updateUpdateList = async () => {
@@ -239,7 +279,7 @@
 			/>
 		</div>
 
-		<div class="mt-4  flex flex-col w-1/3">
+		<div class="mt-4  flex flex-col w-1/2">
 			<label for="file" class="mr-4">File Name:</label>
 			<input
 				type="text"
@@ -251,7 +291,7 @@
 				bind:value={name}
 			/>
 		</div>
-		<div class="mt-4  flex flex-col w-1/3">
+		<div class="mt-4  flex flex-col w-1/2">
 			<label for="file" class="mr-4">Target Device ID:</label>
 			<input
 				type="text"
@@ -262,7 +302,7 @@
 				bind:value={deviceID}
 			/>
 		</div>
-		<div class="mt-4  flex flex-col w-1/3">
+		<div class="mt-4  flex flex-col w-1/2">
 			<label for="file" class="mr-4">Update Version:</label>
 			<input
 				type="text"
@@ -383,5 +423,10 @@
 	/* if disabled, gray out text */
 	:disabled {
 		color: #9ca3af;
+	}
+	:root {
+		--toastBackground: rgb(0, 0, 0);
+		--toastColor: #ffffff;
+		--toastBarBackground: rgba(23, 158, 95, 0.95);
 	}
 </style>

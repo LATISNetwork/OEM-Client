@@ -1,9 +1,10 @@
-import type { PrivateKey, AccountId, PublicKey } from '@hashgraph/sdk';
-import type { BigNumber } from 'bignumber.js';
+import type { PrivateKey, AccountId, PublicKey, Client } from '@hashgraph/sdk';
+import { BigNumber } from 'bignumber.js';
 
 import type { Wallet } from './ledgerabstract';
 import type { AccountBalance, MirrorAccountInfo, SimpleHederaClient } from './hedera';
 import { writable } from 'svelte/store';
+
 declare const __TEST__: boolean;
 interface State {
 	network: 'mainnet' | 'testnet' | 'previewnet';
@@ -11,11 +12,11 @@ interface State {
 	wallet: Wallet | null;
 	// the specific instantiation of a client
 	// from the unlocked wallet that is being used
-	client: SimpleHederaClient | null;
+	client: Client | null;
 	// the balance of the account associated with the client
 	balance: AccountBalance | null;
 	// the current price of HBARS in USD
-	hbarPriceUsd: BigNumber.Instance | null;
+	// hbarPriceUsd: BigNumber.Instance | null;
 	// a place to stuff extra information needed to process a transaction
 	extraTxInfo: Record<string, string | number> | null;
 	// is there an open prompt for the user on their hardware wallet
@@ -32,14 +33,27 @@ interface TransportStatusError extends Error {
 	statusText: string;
 }
 
+interface storeMethods {
+	publicKey: (ind: number) => PublicKey | null;
+	// privateKey: () => PrivateKey | null;
+	// accountId: () => AccountId | null;
+	getClient: () => Client | null;
+	getWallet: () => Wallet | null;
+	getNetwork: () => 'mainnet' | 'testnet' | 'previewnet';
+	extraInfo: () => Record<string, string | number> | null;
+	networkPing: () => Promise<void>;
+	networkStatus: () => boolean;
+	mirrorAccountInfo: () => MirrorAccountInfo | null;
+}
+
 export const walletstores = (() => {
 	const initWalletStores = () => {
 		return {
 			network: 'mainnet' as 'mainnet' | 'testnet' | 'previewnet',
 			wallet: null as Wallet | null,
-			client: null as SimpleHederaClient | null,
+			client: null as Client | null,
 			balance: null as AccountBalance | null,
-			hbarPriceUsd: null as BigNumber.Instance | null,
+			// hbarPriceUsd: null as BigNumber.Instance | null,
 			extraTxInfo: null as Record<string, string | number> | null,
 			prompt: false as boolean,
 			logoutConfirm: false as boolean,
@@ -47,41 +61,75 @@ export const walletstores = (() => {
 		};
 	};
 	const store = writable(initWalletStores());
-	const { subscribe, set, update } = store;
+	const { subscribe, set, update} = store;
 	return {
 		subscribe,
 		set,
 		update,
 
-		publicKey() {
+		publicKey(ind: number) {
 			subscribe((state) => {
-				return state.client?.getPublicKey() ?? null;
+				return state.wallet?.getPublicKey(ind) ?? null;
 			});
 		},
 
-		privateKey() {
-			subscribe((state) => {
-				return state.client?.getPrivateKey() ?? null;
-			});
-		},
+		// privateKey() {
+		// 	subscribe((state) => {
+		// 		return state.client?.getPrivateKey() ?? null;
+		// 	});
+		// },
 
-		accountId() {
-			subscribe((state) => {
-				return state.client?.getAccountId() ?? null;
-			});
-		},
+		// accountId() {
+		// 	let accountId;
+		// 	subscribe((state) => {
+		// 		accountId = state.client?.getAccountId() ?? null;
+		// 	})();
+		// 	set(initWalletStores());
+		// 	return accountId;
+		// },
 
 		getClient() {
+			let client;
 			subscribe((state) => {
-				return state.client;
-			});
+				client = state.client;
+			})();
+			set(initWalletStores());
+			return client;
+		},
+
+		getWallet() {
+			let wallet;
+			subscribe((state) => {
+				wallet = state.wallet;
+			})();
+			set(initWalletStores());
+			return wallet;
 		},
 
 		extraInfo() {
+			let extraInfo;
 			subscribe((state) => {
-				return state.extraTxInfo;
-			});
+				extraInfo = state.extraTxInfo;
+			})();
+			set(initWalletStores());
+			return extraInfo;
 		},
+		getNetwork() {
+			let network; // declare a variable to store the network value
+			subscribe((currentState) => {
+				network = currentState.network; // set the network variable to the current network value
+			})();
+			set(initWalletStores()); // reset the store to its initial value to unsubscribe from updates
+			return network; 
+		  },
+		// async login(privateKey: string, accountIdStr: string) : Promise<void> {
+		// 	if (__TEST__) {
+		// 		const {PrivateKey, AccountId} = await import('@hashgraph/sdk');
+		// 	}
+		// 	const key = PrivateKey.fromString(privateKey);
+		// 	const accountId = AccountId.fromString(accountIdStr);
+		// 	const wallet = new PrivateKeySoftwareWallet(key);
+		// },
 
 		async networkPing() {
 			const { AccountBalanceQuery, AccountId } = await import('@hashgraph/sdk');
@@ -119,18 +167,18 @@ export const walletstores = (() => {
 			})
 		},
 
-		setClient(client: SimpleHederaClient | null) {
+		setClient(client: Client | null) {
 			update((state) => {
 				state.client = client;
 				return state;
 			})
 		},
 
-		async requestAccountBalance() {
-			subscribe(async (state) => {
-				await state.client?.getAccountBalance();
-			})
-		},
+		// async requestAccountBalance() {
+		// 	subscribe(async (state) => {
+		// 		await state.client?.getAccountBalance();
+		// 	})
+		// },
 
 		setExtraInfo(info: Record<string, string | number>): void {
 			update((state) => {

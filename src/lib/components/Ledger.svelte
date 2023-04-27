@@ -5,6 +5,9 @@
 	import { LedgerHardwareWallet } from './hardware-ledger';
 	import { goto } from '$app/navigation';
 	import { componentType, loggedIn, ComponentType, pubKey } from '$lib/stores/stores';
+	import { Client } from '@hashgraph/sdk';
+	import { oemAccountId, oemPrivateKey } from '$lib/stores/wallet';
+
 	// import * as usb from '../../usb.bundle.js';
 
 	let busy = false;
@@ -42,6 +45,10 @@
 			console.log('Connected to Ledger');
 			console.log(wallet);
 
+			const OEM = Client.forTestnet().setOperator(oemAccountId, oemPrivateKey);
+
+			await walletstores.setClient(OEM);
+
 			const pubKeyL = await wallet.getPublicKey(0).then(() => {
 				console.log('connected to ledger!!!!');
 				$componentType = ComponentType.LOGIN;
@@ -74,7 +81,9 @@
 
 <div class="flex flex-col justify-center items-center h-screen gap-y-2 text-center">
 	<h1 class="text-5xl text-emerald-200 font-bold">LATIS</h1>
-	<h1 class="text-emerald-400 mb-4 text-lg">Secure your device updates, decentralized and trusted.</h1>
+	<h1 class="text-emerald-400 mb-4 text-lg">
+		Secure your device updates, decentralized and trusted.
+	</h1>
 	<button
 		on:click={handleConnect}
 		class="border-2 border-solid border-white rounded-full py-2 px-8 text-white font-bold text-xl bg-black hover:animate-pulse bg-opacity-10"

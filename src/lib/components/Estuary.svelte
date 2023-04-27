@@ -11,8 +11,14 @@
 	let manuID = 'LatisManu';
 	import Icon from '@iconify/svelte';
 	import { componentType, loggedIn, ComponentType } from '$lib/stores/stores';
-
-	import fs from 'fs';
+	import {
+		ContractExecuteTransaction,
+		ContractFunctionParameters,
+		Hbar,
+		Status,
+	} from '@hashgraph/sdk';
+	import { walletstores } from './wallet-stores';
+	import { oemContract } from '$lib/stores/wallet';
 	import { onMount } from 'svelte';
 	let updateListJson: any[] = [];
 
@@ -88,8 +94,30 @@
 				error = await addUpdate.text();
 				return;
 			}
+			let client;
+			const unsubscribeWallet = walletstores.subscribe((store) => {
+				client = store.client;
+			});
 
 			// HERE ADD SMART CONTRACT, AFTER ASYNC CALL FINISHES, THEN UPDATE THE STUFF BELOW
+			// only call when maufacturer is LatisManufacturer
+			const contractAddUpdate1Tx = new ContractExecuteTransaction()
+				.setContractId(oemContract)
+				.setGas(1000000)
+				.setFunction(
+					'addUpdate',
+					new ContractFunctionParameters()
+						.addString(deviceID)
+						.addString(version)
+						.addUint256(0x23456789)
+						.addUint256(0x34)
+						.addAddress(cid)
+						.addAddress('0x9d16aaf1d85cea6cdb816c56dba5e2ed9689f7c2')
+						.addString(url),
+				);
+			const contractAddUpdate1Submit = await contractAddUpdate1Tx.execute(client);
+			const contractAddUpdateRx = await contractAddUpdate1Submit.getReceipt(client);
+			console.log('- Adding update 1 to OEM\n');
 
 			response = responseJson.output;
 			name = '';
@@ -120,7 +148,7 @@
 		}
 	};
 
-	const pushUpdate = (
+	const pushUpdate = async (
 		manuID: string,
 		name: string,
 		d_id: string,
@@ -135,6 +163,20 @@
 		console.log(url);
 		// DO AN API CALL HERE
 		// DO A SMART CONTRACT CALL TOO
+		// make an if statment here to only call this method when manufacturer is LatisManufacturer
+		const contractPushUpdateTx = new ContractExecuteTransaction()
+			.setContractId(oemContract)
+			.setGas(1000000)
+			.setFunction(
+				'pushUpdate',
+				new ContractFunctionParameters()
+					.addString(deviceID)
+					.addString(version)
+					.addString('LatisManufacturer'),
+			);
+		const contractPushUpdateSubmit = await contractPushUpdateTx.execute(client);
+		const contractPushUpdateRx = await contractPushUpdateSubmit.getReceipt(client);
+		console.log('- Pushing update to middleman\n');
 	};
 
 	const updateUpdateList = async () => {
